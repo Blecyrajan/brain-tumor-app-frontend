@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
-import '../services/auth_service.dart';
 import 'register.dart';
 import 'upload.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import '../services/api_service.dart';
+
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -16,30 +19,36 @@ class _LoginScreenState extends State<LoginScreen> {
   bool loading = false;
 
   void loginUser() async {
-    setState(() => loading = true);
+          final email = emailController.text.trim();
+          final password = passwordController.text.trim();
 
-    final error = await AuthService.login(
-      emailController.text.trim(),
-      passwordController.text.trim(),
-    );
+          final response = await http.post(
+            Uri.parse("${ApiService.baseUrl}/login"),
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: jsonEncode({
+              "email": email,
+              "password": password,
+            }),
+          );
+          if (!mounted) return;
+          if (response.statusCode == 200) {
+            final data = jsonDecode(response.body);
 
-    setState(() => loading = false);
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (_) => UploadScreen(userEmail: email),
+              ),
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("Invalid email or password")),
+            );
+          }
+}
 
-    if (error == null) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (_) => UploadScreen(
-            userEmail: emailController.text.trim(),
-          ),
-        ),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error)),
-      );
-    }
-  }
 
   @override
   Widget build(BuildContext context) {

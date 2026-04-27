@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class AuthService {
-  static const String baseUrl = "http://192.168.1.6:8000";
+  static const String baseUrl = "https://nonml-brain-tumor-backend.onrender.com";
 
   static Future<String?> register(String email, String password) async {
     final response = await http.post(
